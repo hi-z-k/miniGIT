@@ -38,7 +38,18 @@ private:
         out << author;
         out.close();
     }
-    // unordered_map<string, string> stageOf(const path& stagePath);
+    unordered_map<string, string> stageOf(const path& stagePath) {
+        unordered_map<string, string> stage;
+        ifstream sStream(stagePath);
+        string line;
+        while (getline(sStream, line)) {
+            istringstream lStream(line);
+            string file, hash;
+            if (lStream >> file >> hash)
+                stage[file] = hash;
+        }
+        return stage;
+    }
     // string blob(const path& filePath);
     // string activeBranch();
     // string hashOf(const path& filePath);
