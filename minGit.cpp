@@ -32,7 +32,12 @@ private:
 
 
 
-    // void recordAuthor(const string& branch, const string& author);
+    void recordAuthor(const string& branch, const string& author) {
+        path authorPath = repoPath / "authors" / branch;
+        ofstream out(authorPath);
+        out << author;
+        out.close();
+    }
     // unordered_map<string, string> stageOf(const path& stagePath);
     // string blob(const path& filePath);
     // string activeBranch();
