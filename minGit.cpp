@@ -66,7 +66,13 @@ private:
         getline(head, branch);
         return branch;
     }
-    // string hashOf(const path& filePath);
+    string hashOf(const path& filePath) {
+        ifstream file(filePath, ios::binary);
+        if (!file) return "";
+        stringstream buffer;
+        buffer << file.rdbuf();
+        return hashOf(buffer.str());
+    }
     string hashOf(const string& content) {
         EVP_MD_CTX* ctx = EVP_MD_CTX_new();
         EVP_DigestInit_ex(ctx, EVP_sha1(), nullptr);
