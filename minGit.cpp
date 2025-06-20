@@ -63,7 +63,15 @@ private:
         if (in) getline(in, name);
         return name;
     }
-    // string commitString(const CommitNode& node);
+    string commitString(const CommitNode& node) {
+        string commit;
+        commit += "stageSnapshot: " + node.stageSnap + "\n";
+        commit += "prevCommit: "    + node.prevCommit + "\n";
+        commit += "timestamp: "     + node.timestamp + "\n";
+        commit += "author: "        + node.author    + "\n";
+        commit += "comment: "       + node.comment   + "\n";
+        return commit;
+    }
 
 
     // string findHash(const string& targetName);
