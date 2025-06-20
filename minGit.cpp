@@ -78,7 +78,11 @@ private:
     // void recover(const string& commitID);
 
 
-    // unordered_map<string, string> stageOf(const string& commitID);
+    unordered_map<string, string> stageOf(const string& commitID) {
+        string stageHash = CommitData(commitID).stageSnap;
+        path stagePath = repoPath / "objects" / stageHash;
+        return stageOf(stagePath);
+    }
     // CommitNode CommitData(const string& id);
 
 
