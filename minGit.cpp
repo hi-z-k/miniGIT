@@ -56,7 +56,13 @@ private:
         in.close();
         return id;
     }
-    // string Author(const string& branch);
+    string Author(const string& branch) {
+        path authorPath = repoPath / "authors" / branch;
+        ifstream in(authorPath);
+        string name;
+        if (in) getline(in, name);
+        return name;
+    }
     // string commitString(const CommitNode& node);
 
 
