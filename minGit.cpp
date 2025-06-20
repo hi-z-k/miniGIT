@@ -396,7 +396,22 @@ public:
         cout << "Branch @" << name << " successfully created at commit " << commitHash << "\n";
     }
 
-    // void checkout(const string& targetHash);
+        void checkout(const string& targetHash) {
+            string resolvedHash = findHash(targetHash);
+            if (resolvedHash.empty()) return;
+    
+            ofstream hStream(repoPath / "HEAD", ios::trunc);
+            hStream << targetHash;
+            hStream.close();
+    
+            if (exists(repoPath / "refs" / targetHash)) {
+                cout << "Branch switched to " << targetHash << "\n";
+            } else {
+                cout << "went to commit @" << targetHash << "\n";
+            }
+    
+            recover(resolvedHash);
+        }
 
     // void merge(const string& branch);
 };
