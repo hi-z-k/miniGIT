@@ -95,11 +95,58 @@ public:
         repoName = repoPath.parent_path().filename().string();
         this->author = author;
     }
+
     // void init();
+
     // void add(const path& filePath);
-    // void commit(const string& comment);
+
+    void commit(const string& comment) {
+        string branch = activeBranch();
+        path stagePath = repoPath / "stages" / branch;
+
+        if (!exists(stagePath)) {
+            cerr << "Stage file is missing\n";
+            return;
+        }
+
+        unordered_map<string, string> staged = stageOf(stagePath);
+        if (staged.empty()) {
+            cerr << "No changes to commit — stage is empty\n";
+            return;
+        }
+
+        string snapBlob = blob(stagePath);
+        if (snapBlob.empty()) {
+            cerr << "Unable to snapshot the stage\n";
+            return;
+        }
+
+        string lastCommit   = latestCommit();
+        string timestamp    = time();
+        string branchAuthor = Author(branch);
+
+        CommitNode node;
+        node.stageSnap  = snapBlob;
+        node.prevCommit = lastCommit;
+        node.timestamp  = timestamp;
+        node.author     = branchAuthor;
+        node.comment    = comment;
+
+        string commit = commitString(node);
+        string commitHash = hashOf(commit);
+
+        ofstream(repoPath / "commits" / commitHash) << commit;
+        ofstream(repoPath / "refs" / branch)        << commitHash;
+        ofstream(repoPath / "stages" / branch, ios::trunc).close();
+
+        cout << "commit @" << commitHash << " - " << comment << "\n";
+    }
+
     // void log();
+
     // void branch(const string& name, const string& author);
+
     // void checkout(const string& targetHash);
+
     // void merge(const string& branch);
 };
