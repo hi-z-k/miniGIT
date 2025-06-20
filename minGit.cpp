@@ -47,7 +47,15 @@ private:
         h.close();
         return latestCommit(ref);
     }
-    // string latestCommit(const string& branch);
+    string latestCommit(const string& branch) {
+        path refPath = repoPath / "refs" / branch;
+        if (!exists(refPath)) return "";
+        ifstream in(refPath);
+        string id;
+        getline(in, id);
+        in.close();
+        return id;
+    }
     // string Author(const string& branch);
     // string commitString(const CommitNode& node);
 
