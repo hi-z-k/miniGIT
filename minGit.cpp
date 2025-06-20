@@ -50,7 +50,16 @@ private:
         }
         return stage;
     }
-    // string blob(const path& filePath);
+    string blob(const path& filePath) {
+        path fullPath = repoPath.parent_path() / filePath;
+        string blobFile = hashOf(fullPath);
+        if (blobFile.empty()) return "";
+    
+        path blobPath = repoPath / "objects" / blobFile;
+        if (!exists(blobPath))
+            copy_file(fullPath, blobPath, copy_options::overwrite_existing);
+        return blobFile;
+    }
     // string activeBranch();
     // string hashOf(const path& filePath);
     // string hashOf(const string& content);
