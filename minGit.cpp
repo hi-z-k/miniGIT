@@ -313,7 +313,36 @@ private:
  */
 
 
-    // string commonAncestor(const string& commitA, const string& commitB);
+    string commonAncestor(const string& commitA, const string& commitB) {  
+    unordered_set<string> ancestorsA;  
+    queue<string> lineageA;  
+    lineageA.push(commitA);  
+  
+    while (!lineageA.empty()) {  
+        string commitID = lineageA.front(); lineageA.pop();  
+        if (!ancestorsA.insert(commitID).second) continue;  
+  
+        istringstream parentStream(CommitData(commitID).prevCommit);  
+        string parent;  
+        while (getline(parentStream, parent, ','))  
+            if (!parent.empty()) lineageA.push(parent);  
+    }  
+  
+    queue<string> lineageB;  
+    lineageB.push(commitB);  
+  
+    while (!lineageB.empty()) {  
+        string commitID = lineageB.front(); lineageB.pop();  
+        if (ancestorsA.count(commitID)) return commitID;  
+  
+        istringstream parentStream(CommitData(commitID).prevCommit);  
+        string parent;  
+        while (getline(parentStream, parent, ','))  
+            if (!parent.empty()) lineageB.push(parent);  
+    }  
+  
+    return "";  
+}
 
 
 public:
