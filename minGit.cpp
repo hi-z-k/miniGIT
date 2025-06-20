@@ -124,7 +124,23 @@ private:
     }
 
 
-    // string findHash(const string& targetName);
+    string findHash(const string& targetName) {
+        path branchPath = repoPath / "refs" / targetName;
+        path commitPath = repoPath / "commits" / targetName;
+    
+        if (exists(branchPath)) {
+            ifstream bStream(branchPath);
+            string commitID;
+            getline(bStream, commitID);
+            bStream.close();
+            return commitID;
+        }
+    
+        if (exists(commitPath)) return targetName;
+    
+        cerr << "reference - " << targetName << " doesn't exist\n";
+        return "";
+    }
     // void recover(const string& commitID);
 
 
