@@ -567,7 +567,77 @@ public:
  * @branch: name of the branch to merge into the current branch
  */
 
-    // void merge(const string& branch);
+    void merge(const string& branch) {  
+        string currentBranch = activeBranch();  
+  
+        if (branch == currentBranch) {  
+            cerr << "You can't merge a branch onto itself\n";  
+            return;  
+        }  
+  
+        path branchPath = repoPath / "refs" / branch;  
+        if (!exists(branchPath)) {  
+            cerr << "Branch " << branch << " doesn't exist\n";  
+            return;  
+        }  
+  
+        string currentCommit = latestCommit();  
+        string branchCommit  = latestCommit(branch);  
+        string ancestorCommit = commonAncestor(currentCommit, branchCommit);  
+  
+        if (ancestorCommit.empty()) {  
+            cerr << branch << " and " << currentBranch << " have no common ancestor\n";  
+            return;  
+        }  
+  
+        auto ancestorMap = stageOf(ancestorCommit);  
+        auto currentMap  = stageOf(currentCommit);  
+        auto branchMap   = stageOf(branchCommit);  
+  
+        unordered_set<string> fileCollection;  
+        for (const auto* fileMap : { &ancestorMap, &currentMap, &branchMap })  
+            for (const auto& [fileName, _] : *fileMap)  
+                fileCollection.insert(fileName);  
+  
+        unordered_map<string, string> mergedStage;  
+        vector<string> conflictList;  
+  
+        for (const string& fileName : fileCollection) {  
+            string resolved = manageConflict(ancestorMap[fileName], currentMap[fileName], branchMap[fileName]);  
+            if (resolved.empty())  
+                conflictList.push_back(fileName);  
+            else  
+                mergedStage[fileName] = resolved;  
+        }  
+  
+        if (!conflictList.empty()) {  
+            cerr << "Conflict occurred in merge - ";  
+            for (size_t i = 0; i < conflictList.size(); ++i) {  
+                cerr << conflictList[i];  
+                if (i < conflictList.size() - 1) cerr << ", ";  
+            }  
+            cerr << "\n";  
+        }  
+  
+        string stagePath = mergeStage(mergedStage);  
+        string stageBlob = blob(stagePath);  
+        remove(stagePath);  
+  
+        CommitNode node;  
+        node.stageSnap  = stageBlob;  
+        node.prevCommit = currentCommit;  
+        node.timestamp  = time();  
+        node.author     = Author(currentBranch);  
+        node.comment    = "Merged from " + branch;  
+  
+        string commitText = commitString(node);  
+        string commitID   = hashOf(commitText);  
+  
+        ofstream(repoPath / "commits" / commitID) << commitText;  
+        ofstream(repoPath / "refs" / currentBranch) << commitID;  
+  
+        cout << "Merge Commit @" << commitID << " - " << node.comment << "\n";  
+}
 };
 
 
