@@ -67,7 +67,21 @@ private:
         return branch;
     }
     // string hashOf(const path& filePath);
-    // string hashOf(const string& content);
+    string hashOf(const string& content) {
+        EVP_MD_CTX* ctx = EVP_MD_CTX_new();
+        EVP_DigestInit_ex(ctx, EVP_sha1(), nullptr);
+        EVP_DigestUpdate(ctx, content.c_str(), content.size());
+    
+        unsigned char hash[EVP_MAX_MD_SIZE];
+        unsigned int len;
+        EVP_DigestFinal_ex(ctx, hash, &len);
+        EVP_MD_CTX_free(ctx);
+    
+        stringstream ss;
+        for (unsigned int i = 0; i < len; ++i)
+            ss << hex << setw(2) << setfill('0') << static_cast<int>(hash[i]);
+        return ss.str();
+    }
 
 
     string latestCommit() {
