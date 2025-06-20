@@ -141,7 +141,28 @@ private:
         cerr << "reference - " << targetName << " doesn't exist\n";
         return "";
     }
-    // void recover(const string& commitID);
+    void recover(const string& commitID) {
+        unordered_map<string, string> stage = stageOf(commitID);
+        if (stage.empty()) {
+            cerr << "no stage found for the commit - " << commitID << "\n";
+            return;
+        }
+    
+        for (const auto& [relativePath, blobHash] : stage) {
+            path blobPath = repoPath / "objects" / blobHash;
+            path fullPath = repoPath.parent_path() / relativePath;
+    
+            create_directories(fullPath.parent_path());
+    
+            ifstream bStream(blobPath, ios::binary);
+            ofstream rStream(fullPath, ios::binary);
+            rStream << bStream.rdbuf();
+            bStream.close();
+            rStream.close();
+        }
+    
+        cout << "Files are restored successfully from commit - " << commitID << "\n";
+    }
 
 
     unordered_map<string, string> stageOf(const string& commitID) {
