@@ -196,7 +196,26 @@ public:
         this->author = author;
     }
 
-    // void init();
+      void init() {
+        if (exists(repoPath)) {
+            cout << "It is already initialized\n";
+            return;
+        }
+
+        create_directory(repoPath);
+        create_directory(repoPath / "objects");
+        create_directory(repoPath / "refs");
+        create_directory(repoPath / "commits");
+        create_directory(repoPath / "stages");
+        create_directory(repoPath / "authors");
+
+        ofstream headFile(repoPath / "HEAD");
+        headFile << "master";
+        headFile.close();
+
+        branch("master", author);
+        cout << repoName << " is initialized successfully\n";
+    }
 
     // void add(const path& filePath);
 
