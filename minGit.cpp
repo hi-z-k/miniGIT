@@ -114,7 +114,13 @@ private:
     }
 
 
-    // string manageConflict(const string& base, const string& current, const string& source);
+    string manageConflict(const string& base, const string& current, const string& source) {  
+    if (current == source || source.empty()) return current;  
+    if (current.empty())                     return source;  
+    if (base == current)                     return source;  
+    if (base == source)                      return current;  
+    return "";  
+}
     // string mergeStage(const unordered_map<string, string>& stageMap);
     // string time();
     // string commonAncestor(const string& commitA, const string& commitB);
