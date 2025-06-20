@@ -60,7 +60,12 @@ private:
             copy_file(fullPath, blobPath, copy_options::overwrite_existing);
         return blobFile;
     }
-    // string activeBranch();
+    string activeBranch() {
+        ifstream head(repoPath / "HEAD");
+        string branch;
+        getline(head, branch);
+        return branch;
+    }
     // string hashOf(const path& filePath);
     // string hashOf(const string& content);
 
