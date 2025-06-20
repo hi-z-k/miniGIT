@@ -144,7 +144,23 @@ public:
 
     // void log();
 
-    // void branch(const string& name, const string& author);
+    void branch(const string& name, const string& Author) {
+        path branchPath = repoPath / "refs" / name;
+        if (exists(branchPath)) {
+            cout << "It already exists - Branch" << name << "\n";
+            return;
+        }
+
+        string commitHash = latestCommit();
+
+        ofstream branchRef(branchPath);
+        branchRef << commitHash;
+        branchRef.close();
+
+        recordAuthor(name, Author);
+
+        cout << "Branch @" << name << " successfully created at commit " << commitHash << "\n";
+    }
 
     // void checkout(const string& targetHash);
 
