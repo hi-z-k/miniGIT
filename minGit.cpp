@@ -83,7 +83,35 @@ private:
         path stagePath = repoPath / "objects" / stageHash;
         return stageOf(stagePath);
     }
-    // CommitNode CommitData(const string& id);
+    CommitNode CommitData(const string& id) {
+        CommitNode node;
+        node.id = id;
+    
+        path commitPath = repoPath / "commits" / id;
+        ifstream file(commitPath);
+        if (!file) {
+            cerr << "Unable to load the commit - " << id << "\n";
+            return node;
+        }
+    
+        string line;
+        getline(file, line);
+        node.stageSnap = line.substr(string("stageSnapshot: ").size());
+    
+        getline(file, line);
+        node.prevCommit = line.substr(string("prevCommit: ").size());
+    
+        getline(file, line);
+        node.timestamp = line.substr(string("timestamp: ").size());
+    
+        getline(file, line);
+        node.author = line.substr(string("author: ").size());
+    
+        getline(file, line);
+        node.comment = line.substr(string("comment: ").size());
+    
+        return node;
+    }
 
 
     // string manageConflict(const string& base, const string& current, const string& source);
