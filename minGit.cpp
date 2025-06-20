@@ -31,13 +31,22 @@ private:
     string author;
 
 
-
+/**
+ * recordAuthor - registers the author and associates it with a branch name
+ * @branch: the name of the branch
+ * @author: the author name to be recorded
+ */
     void recordAuthor(const string& branch, const string& author) {
         path authorPath = repoPath / "authors" / branch;
         ofstream out(authorPath);
         out << author;
         out.close();
     }
+/**
+ * stageOf - transforms a stage from a stage file path into a map
+ * @stagePath: path to the stage snapshot file
+ * Return: map of staged files and their hashes
+ */
     unordered_map<string, string> stageOf(const path& stagePath) {
         unordered_map<string, string> stage;
         ifstream sStream(stagePath);
@@ -50,6 +59,11 @@ private:
         }
         return stage;
     }
+/**
+ * blob - Stores a file by the hash as a name in the object directory if it is not already stored
+ * @filePath: path to the file to be stored
+ * Return: hash filename for the blob
+ */
     string blob(const path& filePath) {
         path fullPath = repoPath.parent_path() / filePath;
         string blobFile = hashOf(fullPath);
@@ -60,12 +74,21 @@ private:
             copy_file(fullPath, blobPath, copy_options::overwrite_existing);
         return blobFile;
     }
+/**
+ * activeBranch - takes the current active branch from HEAD file
+ * Return: name of the current branch
+ */
     string activeBranch() {
         ifstream head(repoPath / "HEAD");
         string branch;
         getline(head, branch);
         return branch;
     }
+/**
+ * hashOf - Generates SHA hash when provided a file path
+ * @filePath: path to the file
+ * Return: SHA hash of the file's contents
+ */
     string hashOf(const path& filePath) {
         ifstream file(filePath, ios::binary);
         if (!file) return "";
@@ -73,6 +96,11 @@ private:
         buffer << file.rdbuf();
         return hashOf(buffer.str());
     }
+/**
+ * hashOf - Generates SHA hash from a string provided
+ * @content: input string
+ * Return: SHA hash 
+ */
     string hashOf(const string& content) {
         EVP_MD_CTX* ctx = EVP_MD_CTX_new();
         EVP_DigestInit_ex(ctx, EVP_sha1(), nullptr);
@@ -89,7 +117,10 @@ private:
         return ss.str();
     }
 
-
+/**
+ * latestCommit - fetches the latest commit ID from the currently active branch
+ * Return: latest commit ID 
+ */
     string latestCommit() {
         ifstream h(repoPath / "HEAD");
         string ref;
@@ -97,6 +128,11 @@ private:
         h.close();
         return latestCommit(ref);
     }
+/**
+ * latestCommit - fetchs latest commit ID of a given branch
+ * @branch: the branch name
+ * Return: latest commit ID for the branch
+ */
     string latestCommit(const string& branch) {
         path refPath = repoPath / "refs" / branch;
         if (!exists(refPath)) return "";
@@ -106,6 +142,11 @@ private:
         in.close();
         return id;
     }
+/**
+ * Author - gets the author of a branch
+ * @branch: name of the branch
+ * Return: author's name as string
+ */
     string Author(const string& branch) {
         path authorPath = repoPath / "authors" / branch;
         ifstream in(authorPath);
@@ -113,6 +154,11 @@ private:
         if (in) getline(in, name);
         return name;
     }
+/**
+ * commitString - converts the commit node to strings
+ * @node: the commit node structure
+ * Return: string of the commit content
+ */
     string commitString(const CommitNode& node) {
         string commit;
         commit += "stageSnapshot: " + node.stageSnap + "\n";
@@ -123,7 +169,11 @@ private:
         return commit;
     }
 
-
+/**
+ * findHash - resolves a reference (branch or commit ID) into a valid commit hash
+ * @targetName: the name of branch or commit ID
+ * Return: resolved commit hash 
+ */
     string findHash(const string& targetName) {
         path branchPath = repoPath / "refs" / targetName;
         path commitPath = repoPath / "commits" / targetName;
@@ -141,6 +191,10 @@ private:
         cerr << "reference - " << targetName << " doesn't exist\n";
         return "";
     }
+/**
+ * recover - Restores files when provided a given commit ID
+ * @commitID: ID of the commit to recover from
+ */
     void recover(const string& commitID) {
         unordered_map<string, string> stage = stageOf(commitID);
         if (stage.empty()) {
@@ -164,12 +218,22 @@ private:
         cout << "Files are restored successfully from commit - " << commitID << "\n";
     }
 
-
+/**
+ * stageOf - transforms a stage from a commit ID into a map 
+ * @commitID: hash of the commit
+ * Return: map of staged files and their hashes
+ */
     unordered_map<string, string> stageOf(const string& commitID) {
         string stageHash = CommitData(commitID).stageSnap;
         path stagePath = repoPath / "objects" / stageHash;
         return stageOf(stagePath);
     }
+
+/**
+ * CommitData - Loads commit details from a commit ID
+ * @id: the commit hash
+ * Return: CommitNode struct with data
+ */
     CommitNode CommitData(const string& id) {
         CommitNode node;
         node.id = id;
@@ -200,6 +264,13 @@ private:
         return node;
     }
 
+/**
+ * manageConflict - resolves merge conflicts using a simple 3 way merge
+ * @base: ancestor version of the file
+ * @current: current version in active branch
+ * @source: version from incoming branch
+ * Return: resolved version or empty string if conflict remains
+ */
 
     string manageConflict(const string& base, const string& current, const string& source) {  
     if (current == source || source.empty()) return current;  
@@ -208,6 +279,12 @@ private:
     if (base == source)                      return current;  
     return "";  
 }
+
+/**
+ * mergeStage - records merged staging map to disk as temporary stage file
+ * @stageMap: map of filename to blob hash
+ * Return: path to the temporary stage file
+ */
     string mergeStage(const unordered_map<string, string>& stageMap) {  
     string pathStr = (repoPath / "merge-stage").string();  
     ofstream oStream(pathStr);  
@@ -216,23 +293,45 @@ private:
     oStream.close();  
     return pathStr;  
 } 
+
+/**
+ * time - Gets the current time as string
+ * Return: timestamp string
+ */
     string time() {
     time_t now = chrono::system_clock::to_time_t(chrono::system_clock::now());
     string t = ctime(&now);
     t.pop_back();
     return t;
 }
+
+/**
+ * commonAncestor - finds the first common ancestor between two commits
+ * @commitA: first commit hash
+ * @commitB: second commit hash
+ * Return: common ancestor commit hash 
+ */
+
+
     // string commonAncestor(const string& commitA, const string& commitB);
 
 
 public:
 
+/**
+ * MinGit - Constructor for the MinGit object
+ * @path: the absolute path of the repository
+ * @author: author name for master branch
+ */
     MinGit(const string& path, const string& author) {
         repoPath = path + "/.minigit";
         repoName = repoPath.parent_path().filename().string();
         this->author = author;
     }
 
+/**
+ * init - Initializes .MiniGit repository if not already present
+ */
       void init() {
         if (exists(repoPath)) {
             cout << "It is already initialized\n";
@@ -254,6 +353,10 @@ public:
         cout << repoName << " is initialized successfully\n";
     }
 
+/**
+ * add - stages a file for commit by recording its blob hash
+ * @filePath: path to the file to be added
+ */
     void add(const path& filePath) {
         string branch = activeBranch();
         path stagePath = repoPath / "stages" / branch;
@@ -303,6 +406,10 @@ public:
             cout << "File is staged - " << relativePath << "\n";
     }
 
+/**
+ * commit - creates a new commit using the staged files
+ * @comment: commit message to describe the changes
+ */
     void commit(const string& comment) {
         string branch = activeBranch();
         path stagePath = repoPath / "stages" / branch;
@@ -345,6 +452,9 @@ public:
         cout << "commit @" << commitHash << " - " << comment << "\n";
     }
 
+/**
+ * log - displays the commit chain history for the current branch
+ */
     void log() {
         string id = latestCommit();
         if (id == "NONE") {
@@ -378,6 +488,11 @@ public:
         }
     }
 
+/**
+ * branch - Creates a new branch pointing to the current commit
+ * @name: new branch name
+ * @Author: author of the new branch
+ */
     void branch(const string& name, const string& Author) {
         path branchPath = repoPath / "refs" / name;
         if (exists(branchPath)) {
@@ -396,6 +511,10 @@ public:
         cout << "Branch @" << name << " successfully created at commit " << commitHash << "\n";
     }
 
+/**
+ * checkout - switches to a given commit or branch
+ * @targetHash: branch name or commit ID 
+ */
         void checkout(const string& targetHash) {
             string resolvedHash = findHash(targetHash);
             if (resolvedHash.empty()) return;
@@ -412,6 +531,12 @@ public:
     
             recover(resolvedHash);
         }
+
+
+/**
+ * merge - merges another branch into the current branch
+ * @branch: name of the branch to merge into the current branch
+ */
 
     // void merge(const string& branch);
 };
