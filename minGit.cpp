@@ -121,7 +121,14 @@ private:
     if (base == source)                      return current;  
     return "";  
 }
-    // string mergeStage(const unordered_map<string, string>& stageMap);
+    string mergeStage(const unordered_map<string, string>& stageMap) {  
+    string pathStr = (repoPath / "merge-stage").string();  
+    ofstream oStream(pathStr);  
+    for (const auto& [fileName, hash] : stageMap)  
+        oStream << fileName << " " << hash << "\n";  
+    oStream.close();  
+    return pathStr;  
+} 
     // string time();
     // string commonAncestor(const string& commitA, const string& commitB);
 
