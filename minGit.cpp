@@ -217,7 +217,54 @@ public:
         cout << repoName << " is initialized successfully\n";
     }
 
-    // void add(const path& filePath);
+    void add(const path& filePath) {
+        string branch = activeBranch();
+        path stagePath = repoPath / "stages" / branch;
+
+        if (!exists(stagePath)) {
+            ofstream indexStream(stagePath, ios::app);
+            indexStream.close();
+        }
+
+        path rootPath = repoPath.parent_path();
+        path relativeRepo = rootPath / filePath;
+        path absolutePath = filesystem::weakly_canonical(relativeRepo);
+
+        string relativePath = relative(absolutePath, repoPath.parent_path()).string();
+
+        unordered_map<string, string> stageMap = stageOf(stagePath);
+
+        if (!exists(absolutePath)) {
+            cerr << "File doesn't exist - " << relativePath << "\n";
+            return;
+        }
+
+        string blobFile = blob(absolutePath);
+        if (blobFile.empty()) {
+            cerr << "blobbing failed - " << relativePath << "\n";
+            return;
+        }
+
+        bool alreadyStaged = stageMap.count(relativePath);
+
+        if (alreadyStaged && stageMap[relativePath] == blobFile) {
+            cout << "File is already staged - " << relativePath << "\n";
+            return;
+        }
+
+        stageMap[relativePath] = blobFile;
+
+        ofstream stageOutput(stagePath, ios::trunc);
+        for (const auto& [file, hash] : stageMap) {
+            stageOutput << file << " " << hash << "\n";
+        }
+        stageOutput.close();
+
+        if (alreadyStaged)
+            cout << "File is restaged with new content - " << relativePath << "\n";
+        else
+            cout << "File is staged - " << relativePath << "\n";
+    }
 
     void commit(const string& comment) {
         string branch = activeBranch();
