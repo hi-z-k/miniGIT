@@ -40,7 +40,13 @@ private:
     // string hashOf(const string& content);
 
 
-    // string latestCommit();
+    string latestCommit() {
+        ifstream h(repoPath / "HEAD");
+        string ref;
+        getline(h, ref);
+        h.close();
+        return latestCommit(ref);
+    }
     // string latestCommit(const string& branch);
     // string Author(const string& branch);
     // string commitString(const CommitNode& node);
