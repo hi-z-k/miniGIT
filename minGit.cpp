@@ -174,7 +174,38 @@ public:
         cout << "commit @" << commitHash << " - " << comment << "\n";
     }
 
-    // void log();
+    void log() {
+        string id = latestCommit();
+        if (id == "NONE") {
+            cout << "There are no commits yet on this branch.\n";
+            return;
+        }
+
+        cout << "\n=========== LOG HISTORY ===========\n\n";
+        while (!id.empty() && id != "NONE") {
+            CommitNode node = CommitData(id);
+
+            if (node.id.empty()) {
+                cerr << "Invalid or unreadable commit: " << id << "\n";
+                break;
+            }
+
+            cout << "<" << node.author << "> @ " << node.id << " - \"" << node.comment << "\"\n";
+            cout << node.timestamp << "\n";
+
+            if (node.prevCommit.empty()) {
+                cout << "Previous commit: NONE\n";
+                break;
+            }
+
+            int commaIdx = node.prevCommit.find(',');
+            string prevCommitID = (commaIdx != string::npos) ? node.prevCommit.substr(0, commaIdx) : node.prevCommit;
+
+            cout << "Previous commit: " << prevCommitID << "\n";
+            cout << "----------------------------------------\n";
+            id = prevCommitID;
+        }
+    }
 
     void branch(const string& name, const string& Author) {
         path branchPath = repoPath / "refs" / name;
