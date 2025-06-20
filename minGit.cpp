@@ -129,7 +129,12 @@ private:
     oStream.close();  
     return pathStr;  
 } 
-    // string time();
+    string time() {
+    time_t now = chrono::system_clock::to_time_t(chrono::system_clock::now());
+    string t = ctime(&now);
+    t.pop_back();
+    return t;
+}
     // string commonAncestor(const string& commitA, const string& commitB);
 
 
