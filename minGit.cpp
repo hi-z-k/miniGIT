@@ -247,3 +247,101 @@ public:
 
     // void merge(const string& branch);
 };
+
+
+int main() {
+    string repoPath, author;
+
+    cout << "===========================\n";
+    cout << "     Welcome to MiniGit    \n";
+    cout << "===========================\n";
+
+    cout << "Enter a path for a folder: ";
+    getline(cin, repoPath);
+
+    cout << "Enter Author: ";
+    getline(cin, author);
+
+    MinGit git(repoPath, author);
+    string directoryName = path(repoPath).filename().string();
+
+    cout << "Type 'help' to see available commands.\n\n";
+
+    string input;
+    while (true) {
+        cout << "miniGIT<" << directoryName << ">$ ";
+        getline(cin, input);
+        istringstream stream(input);
+        string keyword;
+        stream >> keyword;
+
+        if (keyword == "exit") {
+            break;
+
+        } else if (keyword == "help") {
+            cout << "Commands:\n"
+                 << "  init\n"
+                 << "  add <file>\n"
+                 << "  commit <message>\n"
+                 << "  log\n"
+                 << "  branch <name> <author>\n"
+                 << "  checkout <target>\n"
+                 << "  merge <branch>\n"
+                 << "  exit\n";
+
+        } else if (keyword == "init") {
+            git.init();
+
+        } else if (keyword == "add") {
+            string file;
+            stream >> file;
+            if (file.empty())
+                cout << "Please input the file path.\n";
+            else
+                git.add(file);
+
+        } else if (keyword == "commit") {
+            string message;
+            getline(stream, message);
+            if (!message.empty() && message[0] == ' ') message.erase(0, 1);
+            git.commit(message);
+
+        } else if (keyword == "log") {
+            git.log();
+
+        } else if (keyword == "branch") {
+            string name, branchAuthor;
+            stream >> name >> branchAuthor;
+            if (name.empty() || branchAuthor.empty())
+                cout << "Please input the branch name and author.\n";
+            else
+                git.branch(name, branchAuthor);
+
+        } else if (keyword == "checkout") {
+            string target;
+            stream >> target;
+            if (target.empty())
+                cout << "Please input the target (branch or commit hash).\n";
+            else
+                git.checkout(target);
+
+        } else if (keyword == "merge") {
+            string branch;
+            stream >> branch;
+            if (branch.empty())
+                cout << "Please input the branch to merge.\n";
+            else
+                git.merge(branch);
+
+        } else {
+            cout << "Unknown command.\n";
+        }
+
+        cout << "\n";
+    }
+
+    cout << "Terminated.\n";
+    return 0;
+}
+
+
